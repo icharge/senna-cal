@@ -8,6 +8,9 @@
     "type-check": "tsc"
   },
   "dependencies": {
+    "@ant-design/icons": "^4.6.2",
+    "antd": "^4.15.0",
+    "dayjs": "^1.10.4",
     "next": "latest",
     "react": "^17.0.1",
     "react-dom": "^17.0.1"
