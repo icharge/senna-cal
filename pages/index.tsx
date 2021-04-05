@@ -6,6 +6,15 @@ import Layout from '../components/Layout';
 import DatePicker from '../components/DatePicker';
 
 import { SmileFilled } from '@ant-design/icons';
+import * as BigCalendar from 'react-big-calendar';
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
+import dayjs from 'dayjs';
+
+const { Calendar, Views } = BigCalendar;
+
+// Setup the localizer by providing the moment (or globalize) Object
+// to the correct localizer.
+const localizer = BigCalendar.momentLocalizer(dayjs) // or globalizeLocalizer
 
 const FormItem = Form.Item;
 const Option = Select.Option;
@@ -13,6 +22,8 @@ const Option = Select.Option;
 const content = {
   marginTop: '100px',
 };
+
+const DragAndDropCalendar = withDragAndDrop(Calendar as any);
 
 const IndexPage = () => (
   <Layout title="Home | Next.js + TypeScript Example">
@@ -31,6 +42,25 @@ const IndexPage = () => (
         </Link>
 
         <p className="mb-0 mt-3 text-disabled">Welcome to the world !</p>
+
+        <DragAndDropCalendar
+          selectable
+          localizer={localizer}
+          events={[]}
+          // onEventDrop={this.moveEvent}
+          resizable
+          // onEventResize={this.resizeEvent}
+          // onSelectSlot={this.newEvent}
+          onDragStart={console.log}
+          defaultView={Views.MONTH}
+          defaultDate={new Date(2015, 3, 12)}
+          popup={true}
+          // dragFromOutsideItem={
+          //   this.state.displayDragItemInCell ? this.dragFromOutsideItem : null
+          // }
+          // onDropFromOutside={this.onDropFromOutside}
+          // handleDragStart={this.handleDragStart}
+        />
       </div>
       <div>
         <Form layout="horizontal">
