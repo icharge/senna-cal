@@ -5,6 +5,16 @@
 // import { User } from 'path/to/interfaces';
 
 export type User = {
-  id: number
-  name: string
+  id: number;
+  name: string;
+};
+
+export interface CalendarEvent {
+  id: number;
+  allDay?: boolean;
+  title?: string;
+  start?: Date | string;
+  end?: Date | string;
+  memo?: string;
+  resource?: any;
 }
