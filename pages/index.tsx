@@ -35,7 +35,7 @@ const DragAndDropCalendar = withDragAndDrop(Calendar);
 const { RangePicker } = DatePicker;
 
 // Backend
-export async function getStaticProps(context: NextPageContext) {
+/* export async function getStaticProps(context: NextPageContext) {
   // console.log('events :', sampleEvents);
 
   const resp = await fetch(`${APP_URL}/api/event`);
@@ -44,21 +44,24 @@ export async function getStaticProps(context: NextPageContext) {
   return {
     props: { events: body }, // will be passed to the page component as props
   };
-}
+} */
 
 const content = {
   marginTop: '100px',
 };
 
-interface IndexPageProps {
-  events: CalendarEvent[];
-}
+const IndexPage = () => {
+  const loadCalendar = async () => {
+    const resp = await fetch(`${APP_URL}/api/event`);
+    const body = await resp.json();
 
-const IndexPage = (props: IndexPageProps) => {
-  useEffect(() => {
     // need to convert date object before use.
-    setEvents(convertEvents(props.events));
-  }, [JSON.stringify(props.events)]);
+    setEvents(convertEvents(body));
+  };
+
+  useEffect(() => {
+    loadCalendar();
+  }, []);
 
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
