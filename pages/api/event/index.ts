@@ -1,8 +1,8 @@
+import moment from 'moment';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getRepository } from 'typeorm';
 import initializeDatabase from '../../../database';
 import { EventEntity } from '../../../entity/event.entity';
-import { sampleEvents } from '../../../utils/sample-data';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const connection = await initializeDatabase();
@@ -38,19 +38,39 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const bodyJs = JSON.parse(body);
 
       console.debug('Creating event :', bodyJs);
+      const start = new Date(bodyJs.start);
+      const end = new Date(bodyJs.end);
 
       const event = new EventEntity();
       event.allDay = bodyJs.allDay || false;
       event.title = bodyJs.title || '';
       event.memo = bodyJs.memo || '';
-      event.start = new Date(bodyJs.start);
-      event.end = new Date(bodyJs.end);
+      event.start = start;
+      event.end = end;
 
       console.debug('before save :', event);
 
       const savedEvent = await eventRepo.save(event);
 
       console.debug('Saved event :', savedEvent);
+
+      if (bodyJs.repeat) {
+        let startMoment = moment(start);
+        let endMoment = moment(end);
+        for (let idx = 0; idx < bodyJs.repeatCount; idx++) {
+          const repeatEvent = new EventEntity();
+          repeatEvent.allDay = bodyJs.allDay || false;
+          repeatEvent.title = bodyJs.title || '';
+          repeatEvent.memo = bodyJs.memo || '';
+
+          startMoment = startMoment.add(1, bodyJs.repeatType);
+          endMoment = endMoment.add(1, bodyJs.repeatType);
+          repeatEvent.start = startMoment.toDate();
+          repeatEvent.end = endMoment.toDate();
+
+          await eventRepo.save(repeatEvent);
+        }
+      }
 
       res.status(201).json(savedEvent);
       break;

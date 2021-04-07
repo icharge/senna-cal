@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Form, Select, Switch, Button, Modal, Input, DatePicker } from 'antd';
+import {
+  Form,
+  Select,
+  Switch,
+  Button,
+  Modal,
+  Input,
+  DatePicker,
+  Radio,
+  InputNumber,
+} from 'antd';
 import Layout from '../components/Layout';
 
 import { SmileFilled } from '@ant-design/icons';
@@ -61,6 +71,12 @@ const IndexPage = (props: IndexPageProps) => {
     console.debug('Handle change :', field, e);
   }; */
 
+  useEffect(() => {
+    setTimeout(() => {
+      form.resetFields();
+    }, 100);
+  }, [form, selectedEvent]);
+
   const handleFinishForm = async (e: any) => {
     console.debug('handleFinishForm :', e);
 
@@ -80,17 +96,23 @@ const IndexPage = (props: IndexPageProps) => {
 
     console.debug('request :', requestDto);
 
-    const resp = await fetch(`${APP_URL}/api/event`, {
+    const saveUrl = requestDto.id ? `/${requestDto.id}` : '';
+
+    const resp = await fetch(`${APP_URL}/api/event${saveUrl}`, {
       method: 'POST',
       body: JSON.stringify(requestDto),
     });
 
-    const savedEvent = await resp.json();
+    await resp.json();
     // console.debug(events);
 
-    const newEvents = [...events];
+    /* const newEvents = [...events];
     newEvents.splice(0, 0, convertEvent(savedEvent));
-    setEvents(newEvents);
+    setEvents(newEvents); */
+    const resp2 = await fetch(`${APP_URL}/api/event`);
+    const events = await resp2.json();
+    // console.debug(events);
+    setEvents(convertEvents(events));
 
     setOpenModal(false);
     setConfirmLoading(false);
@@ -119,11 +141,29 @@ const IndexPage = (props: IndexPageProps) => {
     console.debug('handleEventResize :', e);
   };
 
-  const handleSelectEvent = (e: any) => alert(e.title);
+  const handleSelectEvent = (e: any) => {
+    console.debug('handleSelectEvent :', e);
+
+    setSelectedEvent({
+      ...e,
+      when: [moment(e.start), moment(e.end)],
+    } as any);
+    setTimeout(() => {
+      setOpenModal(true);
+    }, 100);
+  };
 
   const handleSelectSlot = (e: any) => {
     console.debug('handleSelectSlot :', e);
-    setOpenModal(true);
+
+    setSelectedEvent({
+      // start: e.start,
+      // end: e.end,
+      when: [moment(e.start), moment(e.end)],
+    } as any);
+    setTimeout(() => {
+      setOpenModal(true);
+    }, 100);
   };
 
   const handleDragStart = (e: any) => {
@@ -178,7 +218,7 @@ const IndexPage = (props: IndexPageProps) => {
             style={{ height: 500 }}
           />
           <Modal
-            title="Add new event"
+            title={selectedEvent.id ? 'Edit event' : 'Add new event'}
             visible={openModal}
             onOk={handleModalOk}
             confirmLoading={confirmLoading}
@@ -192,11 +232,15 @@ const IndexPage = (props: IndexPageProps) => {
               initialValues={selectedEvent}
               onFinish={handleFinishForm}
             >
+              <FormItem name="id" hidden>
+                <input type="hidden" />
+              </FormItem>
               <FormItem
                 name="title"
                 label="Title"
                 labelCol={{ span: 6 }}
                 wrapperCol={{ span: 24 }}
+                rules={[{ required: true, message: 'Title please' }]}
               >
                 <Input
                   placeholder=""
@@ -213,7 +257,7 @@ const IndexPage = (props: IndexPageProps) => {
                 wrapperCol={{ span: 8 }}
                 valuePropName="checked"
               >
-                <Switch disabled={confirmLoading} />
+                <Switch defaultChecked disabled={confirmLoading} />
               </FormItem>
               <FormItem
                 noStyle
@@ -225,6 +269,7 @@ const IndexPage = (props: IndexPageProps) => {
                     label="When"
                     labelCol={{ span: 6 }}
                     wrapperCol={{ span: 24 }}
+                    rules={[{ required: true, message: 'Please pick date' }]}
                   >
                     <RangePicker
                       ranges={{
@@ -242,6 +287,62 @@ const IndexPage = (props: IndexPageProps) => {
                   </FormItem>
                 )}
               </FormItem>
+              {!selectedEvent.id && (
+                <>
+                  <FormItem
+                    name="repeat"
+                    label="Repeat ?"
+                    labelCol={{ span: 6 }}
+                    wrapperCol={{ span: 8 }}
+                    valuePropName="checked"
+                  >
+                    <Switch disabled={confirmLoading} />
+                  </FormItem>
+                  <FormItem
+                    noStyle
+                    shouldUpdate={(prev, curr) => prev.repeat !== curr.repeat}
+                  >
+                    {({ getFieldValue }) =>
+                      getFieldValue('repeat') && (
+                        <>
+                          <Form.Item
+                            name="repeatType"
+                            label="Repeat type"
+                            labelCol={{ span: 6 }}
+                            wrapperCol={{ span: 24 }}
+                            rules={[
+                              {
+                                required: true,
+                                message: 'Please pick repeat type',
+                              },
+                            ]}
+                          >
+                            <Radio.Group>
+                              <Radio.Button value="day">Day</Radio.Button>
+                              <Radio.Button value="month">Month</Radio.Button>
+                              <Radio.Button value="year">Year</Radio.Button>
+                            </Radio.Group>
+                          </Form.Item>
+                          <Form.Item
+                            name="repeatCount"
+                            label="Repeat count"
+                            labelCol={{ span: 6 }}
+                            wrapperCol={{ span: 24 }}
+                            rules={[
+                              {
+                                required: true,
+                              },
+                            ]}
+                          >
+                            <InputNumber min={1} defaultValue={1} />
+                          </Form.Item>
+                        </>
+                      )
+                    }
+                  </FormItem>
+                </>
+              )}
+
               <FormItem
                 name="memo"
                 label="Memo"
