@@ -15,6 +15,7 @@ export const sampleEvents: CalendarEvent[] = [
     end: new Date(2021, 4 - 1, 9, 23, 59, 59).toISOString(),
     title: 'First event',
     memo: 'test',
+    allDay: true,
   },
   {
     id: 2,

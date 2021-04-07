@@ -7,13 +7,13 @@ import { SmileFilled } from '@ant-design/icons';
 import * as BigCalendar from 'react-big-calendar';
 import { Calendar, Views } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
-import moment, { Moment } from 'moment';
+import moment from 'moment';
 import { NextPageContext } from 'next';
 import { convertEvents } from '../utils/converter';
 import { CalendarEvent } from '../interfaces';
 import TextArea from 'antd/lib/input/TextArea';
 
-const APP_URL = process.env.APP_URL;
+const APP_URL = process.env.APP_URL || '';
 
 // Setup the localizer by providing the moment (or globalize) Object
 // to the correct localizer.
@@ -52,7 +52,6 @@ const IndexPage = (props: IndexPageProps) => {
 
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
-  const [isAllDay, setAllDay] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent>({});
 
@@ -62,7 +61,7 @@ const IndexPage = (props: IndexPageProps) => {
     console.debug('Handle change :', field, e);
   }; */
 
-  const handleFinishForm = (e: any) => {
+  const handleFinishForm = async (e: any) => {
     console.debug('handleFinishForm :', e);
 
     setConfirmLoading(true);
@@ -81,8 +80,29 @@ const IndexPage = (props: IndexPageProps) => {
 
     console.debug('request :', requestDto);
 
+    const resp = await fetch(`${APP_URL}/api/event`, {
+      method: 'POST',
+      body: JSON.stringify(requestDto),
+    });
+
+    console.debug('RESP :', resp);
+
     setOpenModal(false);
     setConfirmLoading(false);
+    setSelectedEvent({});
+  };
+
+  const handleRangeChange = async (e: any) => {
+    console.debug('handleRangeChange :', e);
+    const { start, end } = e;
+
+    const query = new URLSearchParams();
+    query.set('start', moment(start).toISOString());
+    query.set('end', moment(end).add(1, 'day').startOf('day').toISOString());
+
+    const resp = await fetch(`${APP_URL}/api/event?${query.toString()}`,);
+
+    console.debug(resp);
   };
 
   const handleEventDrop = (e: any) => {
@@ -111,6 +131,7 @@ const IndexPage = (props: IndexPageProps) => {
   const handleModalCancel = () => {
     setOpenModal(false);
     setConfirmLoading(false);
+    setSelectedEvent({});
   };
 
   const handleDateTimeChange = (dates: any, dateStrings: [string, string]) => {
@@ -137,7 +158,7 @@ const IndexPage = (props: IndexPageProps) => {
           <p className="mb-0 mt-3 text-disabled">Senna-Cal</p>
 
           <DragAndDropCalendar
-            resizable
+            resizable={false}
             selectable
             events={events}
             localizer={localizer}
@@ -146,6 +167,7 @@ const IndexPage = (props: IndexPageProps) => {
             onSelectEvent={handleSelectEvent}
             onSelectSlot={handleSelectSlot}
             // onDragStart={handleDragStart}
+            onRangeChange={handleRangeChange}
             defaultView={Views.MONTH}
             popup={true}
             // dragFromOutsideItem={
