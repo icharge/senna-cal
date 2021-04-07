@@ -64,7 +64,25 @@ const IndexPage = (props: IndexPageProps) => {
 
   const handleFinishForm = (e: any) => {
     console.debug('handleFinishForm :', e);
-    // TODO: map `when`. (array) into `start`, `end`
+
+    setConfirmLoading(true);
+    let start = e.when[0];
+    let end = e.when[1];
+
+    if (e.allDay) {
+      start = start.startOf('day');
+      end = end.endOf('day');
+    }
+
+    delete e.when;
+    const requestDto: CalendarEvent = { ...e };
+    requestDto.start = start.toISOString();
+    requestDto.end = end.toISOString();
+
+    console.debug('request :', requestDto);
+
+    setOpenModal(false);
+    setConfirmLoading(false);
   };
 
   const handleEventDrop = (e: any) => {
@@ -92,6 +110,7 @@ const IndexPage = (props: IndexPageProps) => {
 
   const handleModalCancel = () => {
     setOpenModal(false);
+    setConfirmLoading(false);
   };
 
   const handleDateTimeChange = (dates: any, dateStrings: [string, string]) => {
@@ -161,6 +180,8 @@ const IndexPage = (props: IndexPageProps) => {
                   placeholder=""
                   value={selectedEvent.title}
                   defaultValue={selectedEvent.title}
+                  autoComplete="off"
+                  disabled={confirmLoading}
                 />
               </FormItem>
               <FormItem
@@ -170,17 +191,11 @@ const IndexPage = (props: IndexPageProps) => {
                 wrapperCol={{ span: 8 }}
                 valuePropName="checked"
               >
-                <Switch />
+                <Switch disabled={confirmLoading} />
               </FormItem>
               <FormItem
                 noStyle
-                shouldUpdate={(prev, curr) => {
-                  if (prev.allDay !== curr.allDay) {
-                    setAllDay(!curr.allDay);
-                  }
-                  console.debug('shouldUpdate', prev, curr);
-                  return prev.allDay !== curr.allDay;
-                }}
+                shouldUpdate={(prev, curr) => prev.allDay !== curr.allDay}
               >
                 {({ getFieldValue }) => (
                   <FormItem
@@ -200,6 +215,7 @@ const IndexPage = (props: IndexPageProps) => {
                       showTime={!getFieldValue('allDay')}
                       // format="YYYY/MM/DD HH:mm:ss"
                       // onChange={handleDateTimeChange}
+                      disabled={confirmLoading}
                     />
                   </FormItem>
                 )}
@@ -210,7 +226,7 @@ const IndexPage = (props: IndexPageProps) => {
                 labelCol={{ span: 6 }}
                 wrapperCol={{ span: 24 }}
               >
-                <TextArea rows={4} />
+                <TextArea rows={4} disabled={confirmLoading} />
               </FormItem>
             </Form>
           </Modal>
