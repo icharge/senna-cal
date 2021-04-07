@@ -52,6 +52,7 @@ const IndexPage = (props: IndexPageProps) => {
 
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [isAllDay, setAllDay] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent>({});
 
@@ -141,18 +142,20 @@ const IndexPage = (props: IndexPageProps) => {
             onOk={handleModalOk}
             confirmLoading={confirmLoading}
             onCancel={handleModalCancel}
+            width={600}
           >
             <Form
               form={form}
               layout="horizontal"
+              name="control-hooks"
               initialValues={selectedEvent}
               onFinish={handleFinishForm}
             >
               <FormItem
                 name="title"
                 label="Title"
-                labelCol={{ span: 8 }}
-                wrapperCol={{ span: 16 }}
+                labelCol={{ span: 6 }}
+                wrapperCol={{ span: 24 }}
               >
                 <Input
                   placeholder=""
@@ -163,36 +166,49 @@ const IndexPage = (props: IndexPageProps) => {
               <FormItem
                 name="allDay"
                 label="All day"
-                labelCol={{ span: 8 }}
+                labelCol={{ span: 6 }}
                 wrapperCol={{ span: 8 }}
                 valuePropName="checked"
               >
                 <Switch />
               </FormItem>
               <FormItem
-                name="when"
-                label="When"
-                labelCol={{ span: 8 }}
-                wrapperCol={{ span: 16 }}
+                noStyle
+                shouldUpdate={(prev, curr) => {
+                  if (prev.allDay !== curr.allDay) {
+                    setAllDay(!curr.allDay);
+                  }
+                  console.debug('shouldUpdate', prev, curr);
+                  return prev.allDay !== curr.allDay;
+                }}
               >
-                <RangePicker
-                  ranges={{
-                    Today: [moment(), moment()],
-                    'This Month': [
-                      moment().startOf('month'),
-                      moment().endOf('month'),
-                    ],
-                  }}
-                  showTime
-                  format="YYYY/MM/DD HH:mm:ss"
-                  // onChange={handleDateTimeChange}
-                />
+                {({ getFieldValue }) => (
+                  <FormItem
+                    name="when"
+                    label="When"
+                    labelCol={{ span: 6 }}
+                    wrapperCol={{ span: 24 }}
+                  >
+                    <RangePicker
+                      ranges={{
+                        Today: [moment(), moment()],
+                        'This Month': [
+                          moment().startOf('month'),
+                          moment().endOf('month'),
+                        ],
+                      }}
+                      showTime={!getFieldValue('allDay')}
+                      // format="YYYY/MM/DD HH:mm:ss"
+                      // onChange={handleDateTimeChange}
+                    />
+                  </FormItem>
+                )}
               </FormItem>
               <FormItem
                 name="memo"
                 label="Memo"
-                labelCol={{ span: 8 }}
-                wrapperCol={{ span: 16 }}
+                labelCol={{ span: 6 }}
+                wrapperCol={{ span: 24 }}
               >
                 <TextArea rows={4} />
               </FormItem>
