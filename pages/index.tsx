@@ -9,7 +9,7 @@ import { Calendar, Views } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
 import { NextPageContext } from 'next';
-import { convertEvents } from '../utils/converter';
+import { convertEvent, convertEvents } from '../utils/converter';
 import { CalendarEvent } from '../interfaces';
 import TextArea from 'antd/lib/input/TextArea';
 
@@ -85,7 +85,12 @@ const IndexPage = (props: IndexPageProps) => {
       body: JSON.stringify(requestDto),
     });
 
-    console.debug('RESP :', resp);
+    const savedEvent = await resp.json();
+    // console.debug(events);
+
+    const newEvents = [...events];
+    newEvents.splice(0, 0, convertEvent(savedEvent));
+    setEvents(newEvents);
 
     setOpenModal(false);
     setConfirmLoading(false);
@@ -100,9 +105,10 @@ const IndexPage = (props: IndexPageProps) => {
     query.set('start', moment(start).toISOString());
     query.set('end', moment(end).add(1, 'day').startOf('day').toISOString());
 
-    const resp = await fetch(`${APP_URL}/api/event?${query.toString()}`,);
-
-    console.debug(resp);
+    const resp = await fetch(`${APP_URL}/api/event?${query.toString()}`);
+    const events = await resp.json();
+    // console.debug(events);
+    setEvents(convertEvents(events));
   };
 
   const handleEventDrop = (e: any) => {
@@ -141,12 +147,6 @@ const IndexPage = (props: IndexPageProps) => {
   // console.debug('event ', events);
   return (
     <Layout title="Senna-Cal">
-      {/* <h1>Hello Next.js 👋</h1>
-      <p>
-        <Link href="/about">
-          <a>About</a>
-        </Link>
-      </p> */}
       <div style={content}>
         <div className="text-center mb-5">
           <Link href="#">
